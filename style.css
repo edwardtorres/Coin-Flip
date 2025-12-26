@@ -1,0 +1,324 @@
+:root {
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.82);
+
+  --coinSize: 240px;
+  --coinEdge: #b8860b;
+
+  --flipDuration: 1450ms;
+
+  /* Driven by JS */
+  --startRot: 0deg; /* rotateY start */
+  --endRot: 0deg;   /* rotateY end */
+  --endYaw: 0deg;   /* rotateZ small wobble */
+
+  /* Driven by JS for realism */
+  --spinDeg: 1440deg;
+  --tiltStart: 14deg;
+  --tiltEnd: 0deg;
+  --liftZ: 220px;
+  --liftY: -46px;
+  --shadowScale: 1;
+  --shadowAlpha: 0.35;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+
+  background:
+    radial-gradient(1000px 650px at 50% 28%, rgba(0,0,0,.10), rgba(0,0,0,.70)),
+    url("images/bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: grid;
+  place-items: center;
+}
+
+.wrap {
+  width: min(780px, 92vw);
+  text-align: center;
+  padding: 28px 14px 18px;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-size: clamp(24px, 4vw, 36px);
+  text-shadow: 0 14px 34px rgba(0,0,0,.60);
+}
+
+.controls{
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+  margin: 0 auto 14px;
+  width: min(720px, 100%);
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(6px);
+}
+
+.field{
+  text-align: left;
+  display: grid;
+  gap: 6px;
+}
+
+label{
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  color: rgba(255,255,255,0.9);
+}
+
+input{
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.35);
+  color: white;
+  padding: 0 12px;
+  outline: none;
+}
+
+input:focus{
+  border-color: rgba(255,255,255,0.35);
+}
+
+.reset{
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.12);
+  color: white;
+  cursor: pointer;
+}
+
+.reset:hover{
+  background: rgba(255,255,255,0.18);
+}
+
+.coin-button {
+  all: unset;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  padding: 14px;
+  border-radius: 20px;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.coin-button:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 6px;
+}
+
+/* Perspective stage */
+.stage {
+  position: relative;
+  perspective: 950px;
+  perspective-origin: 50% 45%;
+  display: grid;
+  place-items: center;
+  min-height: calc(var(--coinSize) + 50px);
+}
+
+/* Ground shadow */
+.ground-shadow{
+  position: absolute;
+  width: calc(var(--coinSize) * 0.78);
+  height: calc(var(--coinSize) * 0.22);
+  border-radius: 999px;
+  background: rgba(0,0,0,var(--shadowAlpha));
+  filter: blur(18px);
+  transform: translateY(calc(var(--coinSize) * 0.52)) scale(var(--shadowScale));
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.stage.shadow-fly .ground-shadow{
+  animation: shadowFly var(--flipDuration) cubic-bezier(.12,.88,.18,1) forwards;
+}
+
+@keyframes shadowFly{
+  0%   { transform: translateY(calc(var(--coinSize) * 0.52)) scale(1); opacity: 0.95; }
+  30%  { transform: translateY(calc(var(--coinSize) * 0.54)) scale(0.78); opacity: 0.55; }
+  60%  { transform: translateY(calc(var(--coinSize) * 0.53)) scale(0.86); opacity: 0.65; }
+  100% { transform: translateY(calc(var(--coinSize) * 0.52)) scale(1); opacity: 0.95; }
+}
+
+/* Coin */
+.coin {
+  width: var(--coinSize);
+  height: var(--coinSize);
+  position: relative;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+}
+
+/* Idle state */
+.coin.idle {
+  transform: rotateY(var(--endRot)) rotateZ(var(--endYaw));
+  transition: transform 240ms ease-out;
+}
+
+/* Faces */
+.face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  border: 6px solid var(--coinEdge);
+
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 35%),
+    radial-gradient(circle at 50% 55%, #f7d46a, #d6a93a);
+
+  box-shadow:
+    inset 0 10px 18px rgba(255, 255, 255, .16),
+    inset 0 -14px 18px rgba(0, 0, 0, .24),
+    0 26px 30px rgba(0, 0, 0, .50);
+}
+
+.face.heads { transform: rotateY(0deg) translateZ(2px); }
+.face.tails { transform: rotateY(180deg) translateZ(2px); }
+
+/* Image layer */
+.face::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, .15),
+    inset 0 12px 18px rgba(255, 255, 255, .10),
+    inset 0 -18px 26px rgba(0, 0, 0, .22);
+}
+
+.face.heads::after { background-image: url("images/heads.png"); }
+.face.tails::after { background-image: url("images/tails.png"); }
+
+/* Coin thickness illusion */
+.coin::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  transform: translateZ(-10px);
+  background: radial-gradient(circle,
+    transparent 62%,
+    rgba(184, 134, 11, .92) 64%,
+    rgba(120, 80, 10, .98) 72%,
+    transparent 74%);
+  opacity: .85;
+}
+
+/* Toss animation */
+.coin.flipping {
+  animation: coinToss var(--flipDuration) cubic-bezier(.12,.88,.18,1) forwards;
+}
+
+@keyframes coinToss{
+  0%{
+    transform:
+      rotateY(var(--startRot))
+      rotateX(var(--tiltStart))
+      rotateZ(0deg)
+      translateY(0px)
+      translateZ(0px)
+      scale(1);
+  }
+  12%{
+    transform:
+      rotateY(calc(var(--startRot) + (var(--spinDeg) * 0.30)))
+      rotateX(18deg)
+      rotateZ(14deg)
+      translateY(calc(var(--liftY) * 0.55))
+      translateZ(calc(var(--liftZ) * 0.55))
+      scale(1.08);
+  }
+  30%{
+    transform:
+      rotateY(calc(var(--startRot) + (var(--spinDeg) * 0.75)))
+      rotateX(-16deg)
+      rotateZ(-18deg)
+      translateY(var(--liftY))
+      translateZ(var(--liftZ))
+      scale(1.14);
+  }
+  60%{
+    transform:
+      rotateY(calc(var(--startRot) + (var(--spinDeg) * 0.95)))
+      rotateX(10deg)
+      rotateZ(10deg)
+      translateY(calc(var(--liftY) * 0.45))
+      translateZ(calc(var(--liftZ) * 0.45))
+      scale(1.08);
+  }
+  82%{
+    transform:
+      rotateY(calc(var(--endRot) + 540deg))
+      rotateX(4deg)
+      rotateZ(calc(var(--endYaw) * 0.5))
+      translateY(0px)
+      translateZ(22px)
+      scale(1.02);
+  }
+  92%{
+    transform:
+      rotateY(calc(var(--endRot) + 18deg))
+      rotateX(2deg)
+      rotateZ(calc(var(--endYaw) * 0.8))
+      translateY(0px)
+      translateZ(8px)
+      scale(1.01);
+  }
+  100%{
+    transform:
+      rotateY(var(--endRot))
+      rotateX(0deg)
+      rotateZ(var(--endYaw))
+      translateY(0px)
+      translateZ(0px)
+      scale(1);
+  }
+}
+
+.result{
+  margin: 16px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  text-shadow: 0 12px 30px rgba(0,0,0,.60);
+}
+
+.hint{
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  text-shadow: 0 12px 30px rgba(0,0,0,.60);
+}
+
+.option-preview{
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 12px 30px rgba(0,0,0,.60);
+}

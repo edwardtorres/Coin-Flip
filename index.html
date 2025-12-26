@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coin Flip</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <h1 class="title">Tap the coin</h1>
+
+    <section class="controls" aria-label="Options">
+      <div class="field">
+        <label for="optA">Option A (Heads)</label>
+        <input id="optA" type="text" placeholder="Heads" maxlength="28" />
+      </div>
+      <div class="field">
+        <label for="optB">Option B (Tails)</label>
+        <input id="optB" type="text" placeholder="Tails" maxlength="28" />
+      </div>
+      <button id="resetBtn" class="reset" type="button">Reset</button>
+    </section>
+
+    <button id="coinBtn" class="coin-button" aria-label="Flip coin">
+      <div class="stage" aria-hidden="true">
+        <div class="ground-shadow"></div>
+
+        <div id="coin" class="coin idle">
+          <div class="face heads"></div>
+          <div class="face tails"></div>
+        </div>
+      </div>
+    </button>
+
+    <p id="result" class="result" aria-live="polite">—</p>
+    <p class="hint">Tap once per flip</p>
+
+    <p class="option-preview">
+      Heads: <span id="prevA">Heads</span> • Tails: <span id="prevB">Tails</span>
+    </p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
